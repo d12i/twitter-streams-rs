@@ -12,29 +12,34 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-futures = "0.3"
+
 tokio = { version = "0.2", features = ["macros"] }
-twitter-stream = "=0.10.0-alpha.6"
+twitter-stream = "0.9"
 ```
 
 Here is a basic example that prints public mentions to @Twitter in JSON format:
 
 ```rust
-use futures::prelude::*;
-use twitter_stream::{Token, TwitterStream};
+
+use twitter_stream::{Token, TwitterStreamBuilder};
+use twitter_stream::rt::{self, Future, Stream};
 
 #[tokio::main]
 async fn main() {
     let token = Token::new("consumer_key", "consumer_secret", "access_key", "access_secret");
 
-    TwitterStream::track("@Twitter", &token)
-        .try_flatten_stream()
-        .try_for_each(|json| {
-            println!("{}", json);
-            future::ok(())
-        })
-        .await
-        .unwrap();
+    let future = TwitterStreamBuilder::filter(token)
+    .track(Some("@Twitter"))
+    .listen()
+    .unwrap()
+    .flatten_stream()
+    .for_each(|json| {
+        println!("{}", json);
+        Ok(())
+    })
+    .map_err(|e| println!("error: {}", e));
+
+rt::run(future);
 }
 ```
 
