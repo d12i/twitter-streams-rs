@@ -25,7 +25,7 @@ use twitter_stream::{Token, TwitterStream};
 
 #[tokio::main]
 async fn main() {
-    let token = Token::new("consumer_key", "consumer_secret", "access_key", "access_secret");
+    let token = Token::from_parts("consumer_key", "consumer_secret", "access_key", "access_secret");
 
     TwitterStream::track("@Twitter", &token)
         .try_flatten_stream()
